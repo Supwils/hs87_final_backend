@@ -1,13 +1,13 @@
-const auth = require('./backend/src/auth');
-const article = require('./backend/src/articles');
-const profile = require('./backend/src/profile');
-const following = require('./backend/src/following');
+const auth = require('./src/auth');
+const article = require('./src/articles');
+const profile = require('./src/profile');
+const following = require('./src/following');
 const express = require('express');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const mongoose = require('mongoose');
-const userSchema = require('./backend/src/userSchema');
+const userSchema = require('./src/userSchema');
 const User = mongoose.model('user', userSchema);
 const connectionString = 'mongodb+srv://huahaoshang2000:Soho7436..@hs87-rice.htqq8u4.mongodb.net/?retryWrites=true&w=majority'
 
