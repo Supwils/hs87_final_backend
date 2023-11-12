@@ -151,9 +151,36 @@ async function changeAvatar(req,res){
         res.status(500).send({ error: 'Internal Server Error' });
 }
 }
+async function getPhone(req,res){
+    try{
+        const username = req.params.user || req.username;
+        const user = await Profile.findOne({username: username});
+        if (!user) {
+            return res.status(404).send({ message: 'User not found.' });
+        }
+        res.send({username: username, phone: user.phone});
+    }
+    catch(error){
+        console.error('Failed to get phone:', error);
+        res.status(500).send({ error: 'Internal Server Error' });
+    }
+}
 
-
-
+async function updatePhone(req,res){
+    try{
+        const user = await Profile.findOne({username:req.username});
+        if (!user) {
+            return res.status(404).send({ message: 'User not found.' });
+        }
+        user.phone = req.body.phone;
+        await user.save();
+        res.send({username: req.username, phone: user.phone});
+    }
+    catch(error){
+        console.error('Failed to update phone:', error);
+        res.status(500).send({ error: 'Internal Server Error' });
+} 
+}
 
 
 
@@ -163,6 +190,8 @@ module.exports = (app) => {
     app.put('/headline', updateHeadline);
     app.get('/email/:user?', getEmail);
     app.put('/email', updateEmail)
+    app.get('/phone/:user?', getPhone)
+    app.put('/phone', updatePhone)
     app.get('/dob/:user?', getDob)
     app.get('/zipcode/:user?', getZipcode)
     app.put('/zipcode', changeZipcode)
