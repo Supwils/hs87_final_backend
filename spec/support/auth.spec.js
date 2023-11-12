@@ -40,7 +40,7 @@ describe('Auth API', () => {
       }
     });
 
-    it('should log in an existing user with correct credentials', (done) => {
+    it('should log in an existing user and then logout', (done) => {
       const user = {
         username: 'testUser1',
         password: '123'
