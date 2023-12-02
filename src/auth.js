@@ -121,7 +121,7 @@ async function register(req, res) {
 
         const sid = bcrypt.hashSync(new Date().getTime().toString() + usernameNew, 10);
         sessionUser[sid] = usernameNew;
-        res.cookie(cookieKey, sid, { maxAge: 3600 * 1000, httpOnly: true });
+        res.cookie(cookieKey, sid, { maxAge: 3600 * 1000, httpOnly: true ,secure: true, sameSite: 'none'});
       
           // Respond with success
           res.status(200).send({ message: `User registered with username: ${usernameNew}` });
