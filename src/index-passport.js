@@ -4,9 +4,6 @@ const session = require('express-session');
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
 const bodyParser = require('body-parser');
-const cookieParser = require('cookie-parser');
-const cors = require('cors');
-const corsOptions = {origin:"http://localhost:3000", credentials:true};
 
 
 const bcrypt = require('bcrypt');
@@ -104,7 +101,7 @@ app.get('/auth/google/callback',
     (req, res) => {
         // Set cookie with the sid
         res.cookie(cookieKey, req.user.sid, { maxAge: 3600 * 10000, httpOnly: true });
-        const frontendRedirectUrl = `http://localhost:3000/login?username=${encodeURIComponent(req.user.username)}&isLoggedIn=true`;
+        const frontendRedirectUrl = `http://hs87-final-frontend.surge.sh/login?username=${encodeURIComponent(req.user.username)}&isLoggedIn=true`;
         res.redirect(frontendRedirectUrl);
     });
 
