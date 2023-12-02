@@ -1,6 +1,11 @@
 const mongoose = require('mongoose');
 const User = mongoose.model('user');
 const Profile = mongoose.model('profile');
+const cloudinary = require('cloudinary').v2;
+const multer = require('multer');
+const upload = multer({ dest: 'uploads/' }); 
+const fs = require('fs');
+require('./cloudinaryConfig');
 
 async function getHeadline(req, res) {
     try {
@@ -136,21 +141,36 @@ async function getAvatar(req,res){
     }
 }
 
-async function changeAvatar(req,res){
-    try{
-        const user = await Profile.findOne({username:req.username});
+async function changeAvatar(req, res) {
+    try {
+        const user = await Profile.findOne({ username: req.username });
         if (!user) {
             return res.status(404).send({ message: 'User not found.' });
         }
-        user.avatar = req.body.avatar;
+
+        if (!req.file) {
+            return res.status(400).send({ message: 'No image file provided.' });
+        }
+
+        // Upload the image to Cloudinary
+        const result = await cloudinary.uploader.upload(req.file.path);
+        const imageUrl = result.url; // or result.secure_url
+
+        // Update the user's avatar field with the Cloudinary image URL
+        user.avatar = imageUrl;
         await user.save();
-        res.send({username: req.username, avatar: user.avatar});
-    }
-    catch(error){
+        fs.unlink(req.file.path, (err) => {
+            if (err) console.error('Error removing temporary file:', err);
+        });
+        // Send success response
+        res.send({ username: req.username, avatar: imageUrl });
+    } catch (error) {
         console.error('Failed to update avatar:', error);
         res.status(500).send({ error: 'Internal Server Error' });
+    }
 }
-}
+
+
 async function getPhone(req,res){
     try{
         const username = req.params.user || req.username;
@@ -182,7 +202,20 @@ async function updatePhone(req,res){
 } 
 }
 
-
+async function getFollowInfo(req,res){
+    const username = req.params.user;
+    try{
+        const user = await Profile.findOne({username: username});
+        if (!user) {
+            return res.status(404).send({ message: 'User not found for following user.' });
+        }
+        res.send({username:user.username, avatar: user.avatar, headline: user.headline});
+    }
+    catch(error){
+        console.error('Failed to get follow info:', error);
+        res.status(500).send({ error: 'Internal Server Error' });
+    }
+}
 
 
 module.exports = (app) => {
@@ -196,6 +229,6 @@ module.exports = (app) => {
     app.get('/zipcode/:user?', getZipcode)
     app.put('/zipcode', changeZipcode)
     app.get('/avatar/:user?', getAvatar)
-    app.put('/avatar', changeAvatar)
-    //app.put('/avatar1', uploadImage('avatar'), uploadAvatar)
+    app.put('/avatar', upload.single('image'), changeAvatar);
+    app.get('/followinfo/:user?', getFollowInfo)
 };

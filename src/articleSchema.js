@@ -15,6 +15,10 @@ const articleSchema = new mongoose.Schema({
     date:{
         type: Date,
     },
+    img:{
+        type: String,
+        default: ''
+    },
     comment:{
         type: Array,
         default: []

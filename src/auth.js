@@ -6,7 +6,7 @@ const Profile = mongoose.model('profile', profileSchema);
 const User = mongoose.model('user', userSchema);
 const connectionString = 'mongodb+srv://huahaoshang2000:Soho7436..@hs87-rice.htqq8u4.mongodb.net/?retryWrites=true&w=majority'
 
-let sessionUser = {};
+const { sessionUser } = require('./index-passport');
 let cookieKey = "sid";
 
 let userObjs = {
@@ -21,6 +21,7 @@ function isLoggedIn(req, res, next) {
 
     let sid = req.cookies[cookieKey];
     let username = sessionUser[sid];
+   
 
     if (username) {
         req.username = username;
@@ -56,7 +57,7 @@ async function login(req, res) {
         // Create session
         const sid = bcrypt.hashSync(new Date().getTime().toString() + username, 10);
         sessionUser[sid] = username;
-        res.cookie(cookieKey, sid, { maxAge: 3600 * 1000, httpOnly: true });
+        res.cookie(cookieKey, sid, { maxAge: 3600 * 10000, httpOnly: true });
 
         // Send success response
         res.send({ username, result: 'success' });
@@ -69,7 +70,7 @@ async function login(req, res) {
 
 
 async function register(req, res) {
-    const { username, password, email, dob, zipcode } = req.body;
+    const { username, password, email, dob, zipcode,phone } = req.body;
 
     if (!username || !password) {
         return res.status(400).send({ message: 'Bad Request: Username and password required.' });
@@ -114,7 +115,7 @@ async function register(req, res) {
         const lastid = await User.findOne().sort({ id: -1 }).limit(1);
         const id = lastid ? lastid.id + 1 : 1;
         const newUser = new User({ id,username:usernameNew, password: hashedPassword, created: new Date()});
-        const newProfile = new Profile({ id, username: usernameNew, email, dob, zipcode, created: new Date() });
+        const newProfile = new Profile({ id, username: usernameNew,phone, email, dob, zipcode, created: new Date() });
         await newUser.save();
         await newProfile.save();
 
@@ -148,7 +149,7 @@ async function register(req, res) {
         const lastid = await User.findOne().sort({ id: -1 }).limit(1);
         const id = lastid ? lastid.id + 1 : 1;
         const newUser = new User({ id,username, password: hashedPassword, created: new Date()});
-        const newProfile = new Profile({ id, username, email, dob, zipcode, created: new Date() });
+        const newProfile = new Profile({ id, username, email,phone, dob, zipcode, created: new Date() });
         await newUser.save();
         await newProfile.save();
 
@@ -166,6 +167,21 @@ async function register(req, res) {
     }
     }
 
+}
+async function getPassword(req,res){
+    try{
+        await mongoose.connect(connectionString, { useNewUrlParser: true, useUnifiedTopology: true });
+
+        const user = await User.findOne({ username: req.username });
+        if (!user) {
+            return res.status(401).send({ message: 'Unauthorized: User not found.' });
+        }
+        return res.send({password:user.password});
+    }
+    catch(error){
+        console.error('Failed to get password:', error);
+        res.status(500).send({ error: 'Internal Server Error' });
+    }
 }
 
 async function changePassword(req, res) {
@@ -213,6 +229,7 @@ module.exports = (app) => {
     app.post('/login', login);
     app.post('/register', register);
     app.put('/password', isLoggedIn, changePassword)
+    app.get('/password', isLoggedIn, getPassword)
     app.put('/logout', isLoggedIn, logout);
     app.use(isLoggedIn);
 }
