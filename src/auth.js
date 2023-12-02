@@ -57,7 +57,7 @@ async function login(req, res) {
         // Create session
         const sid = bcrypt.hashSync(new Date().getTime().toString() + username, 10);
         sessionUser[sid] = username;
-        res.cookie(cookieKey, sid, { maxAge: 3600 * 10000, httpOnly: true });
+        res.cookie(cookieKey, sid, { maxAge: 3600 * 10000, httpOnly: true,secure: true, sameSite: 'none' });
 
         // Send success response
         res.send({ username, result: 'success' });
