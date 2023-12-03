@@ -100,7 +100,7 @@ app.get('/auth/google/callback',
     passport.authenticate('google', { failureRedirect: '/' }),
     (req, res) => {
         // Set cookie with the sid
-        res.cookie(cookieKey, req.user.sid, { maxAge: 3600 * 10000, httpOnly: true });
+        res.cookie(cookieKey, req.user.sid, { maxAge: 3600 * 10000, httpOnly: true,secure: true, sameSite: 'none' });
         const frontendRedirectUrl = `https://hs87-final-frontend.surge.sh/login?username=${encodeURIComponent(req.user.username)}&isLoggedIn=true`;
         res.redirect(frontendRedirectUrl);
     });
